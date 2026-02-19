@@ -1,0 +1,4 @@
+echo "3.11.11" > .python-version
+git add .python-version
+git commit -m "fix: pin Python 3.11 for Render deployment"
+git push
