@@ -2,7 +2,8 @@
 
 > An interactive dashboard for monitoring credit scoring model performance, detecting population drift, and tracking data quality over time. Built with Python, Altair, and Dash.
 
-**[🚀 Live Dashboard](https://data551-creditscope.onrender.com)** · **[📋 Proposal](proposal.md)** · **[📝 Reflections](doc/reflection-milestone2.md)**
+**🌐 Live App:** https://data551-creditscope.onrender.com/
+**[📋 Proposal](proposal.md)** · **[📝 Reflections](doc/reflection-milestone2.md)**
 
 
 ---
@@ -66,12 +67,11 @@ The sketch below illustrates the planned layout and interactions (wireframe; not
 
 ```bash
 # Clone the repository
-git clone https://github.com/ubco-mds-2025-labs/creditscope.git
+git clone https://github.com/UBCTAO/DATA551_Creditscope.git
 cd creditscope
 
-# Create environment
-conda env create -f environment.yaml
-conda activate creditscope
+# Install dependencies
+pip install -r requirements.txt
 
 # Run the app
 python src/app.py
