@@ -3,7 +3,7 @@
 > An interactive dashboard for monitoring credit scoring model performance, detecting population drift, and tracking data quality over time. Built with Python, Altair, and Dash.
 
 **🌐 Live App:** https://data551-creditscope.onrender.com/
-**[📋 Proposal](proposal.md)** · **[📝 Reflections](doc/reflection-milestone2.md)**
+**[📋 Proposal](doc/proposal.md)** · **[📝 Reflections](doc/reflection-milestone2.md)**
 
 
 ---
