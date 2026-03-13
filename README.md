@@ -45,7 +45,7 @@ The app uses a **sidebar + main-content** layout with three main tabs.
 
 - **PSI bar chart** ranking monitored features by drift score for the selected period.
 - **Distribution comparison chart** (overlaid histograms/densities) comparing the training baseline vs. selected cohort for a chosen feature.
-- Linked interaction: clicking a PSI bar updates the distribution comparison plot.
+- Linked interaction currently uses the feature selector dropdown; PSI bar click-to-link is planned for a future milestone.
 
 ### Tab 3 — Data Quality
 
