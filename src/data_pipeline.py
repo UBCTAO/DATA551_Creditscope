@@ -35,7 +35,15 @@ BAD_STATUSES = [
 
 
 def load_and_clean(path):
-    """load raw csv and return cleaned dataframe with derived columns."""
+    """Load raw loan records and create cleaned modeling fields.
+
+    Args:
+        path: Path to the raw Lending Club CSV file.
+
+    Returns:
+        pd.DataFrame: Cleaned dataframe with derived columns such as
+            ``term_months``, ``default_flag``, ``cohort``, and ``cohort_q``.
+    """
     df = pd.read_csv(path, parse_dates=["issue_d"])
     print(f"loaded {len(df)} rows")
 
@@ -58,7 +66,14 @@ def load_and_clean(path):
 
 
 def train_model(df):
-    """train logistic regression on training-period data."""
+    """Train the baseline logistic regression model on training years.
+
+    Args:
+        df: Input dataframe containing model features and target labels.
+
+    Returns:
+        tuple: Trained ``(model, imputer, scaler)`` used for scoring.
+    """
     train = df[df["year"].isin(TRAIN_YEARS)].copy()
     train = train.dropna(subset=MODEL_FEATURES + ["default_flag"])
 
@@ -80,7 +95,17 @@ def train_model(df):
 
 
 def score_all(df, model, imputer, scaler):
-    """add predicted default probability to all rows."""
+    """Score all rows and append predicted default probabilities.
+
+    Args:
+        df: Input dataframe to score.
+        model: Trained logistic regression classifier.
+        imputer: Fitted imputer for model features.
+        scaler: Fitted scaler for model features.
+
+    Returns:
+        pd.DataFrame: Copy of input dataframe with ``pred_default_prob`` column.
+    """
     X = df[MODEL_FEATURES].values
     X = imputer.transform(X)
     X = scaler.transform(X)
@@ -89,7 +114,16 @@ def score_all(df, model, imputer, scaler):
 
 
 def compute_psi(expected, actual, n_bins=PSI_N_BINS):
-    """compute population stability index between two arrays."""
+    """Compute Population Stability Index between two numeric arrays.
+
+    Args:
+        expected: Baseline values used to define quantile bins.
+        actual: Current-period values compared against baseline bins.
+        n_bins: Number of bins used in PSI calculation.
+
+    Returns:
+        float: PSI score rounded to 6 decimals.
+    """
     edges = np.quantile(expected[~np.isnan(expected)], np.linspace(0, 1, n_bins + 1))
     edges[0] = -np.inf
     edges[-1] = np.inf
@@ -107,7 +141,14 @@ def compute_psi(expected, actual, n_bins=PSI_N_BINS):
 
 
 def compute_auc_by_cohort(df):
-    """compute auc per monthly and quarterly cohort."""
+    """Compute model AUC by monthly and quarterly cohorts.
+
+    Args:
+        df: Scored dataframe with ``default_flag`` and ``pred_default_prob``.
+
+    Returns:
+        pd.DataFrame: Cohort-level AUC summary including rolling monthly AUC.
+    """
     results = []
     for gran, col in [("month", "cohort"), ("quarter", "cohort_q")]:
         for name, group in df.groupby(col):
@@ -130,7 +171,14 @@ def compute_auc_by_cohort(df):
 
 
 def compute_auc_by_cohort_grade(df):
-    """compute auc per cohort x grade for segment drill-down."""
+    """Compute cohort-level AUC by loan grade segment.
+
+    Args:
+        df: Scored dataframe with cohort, grade, labels, and predictions.
+
+    Returns:
+        pd.DataFrame: AUC summary by ``(cohort, grade)`` with support stats.
+    """
     results = []
     for (cohort, grade), group in df.groupby(["cohort", "grade"]):
         if group["default_flag"].nunique() < 2 or len(group) < 20:
@@ -145,7 +193,14 @@ def compute_auc_by_cohort_grade(df):
 
 
 def compute_psi_by_cohort(df):
-    """compute psi per feature per monthly cohort vs training baseline."""
+    """Compute PSI for monitored features by monthly cohort.
+
+    Args:
+        df: Input dataframe containing drift features and cohort labels.
+
+    Returns:
+        pd.DataFrame: PSI results by feature and monthly cohort.
+    """
     train = df[df["year"].isin(TRAIN_YEARS)]
     results = []
     for feature in DRIFT_FEATURES:
@@ -163,7 +218,14 @@ def compute_psi_by_cohort(df):
 
 
 def compute_missing_rates(df):
-    """compute missing rate per feature per monthly cohort."""
+    """Compute feature-level missing rates by monthly cohort.
+
+    Args:
+        df: Input dataframe containing data-quality feature columns.
+
+    Returns:
+        pd.DataFrame: Missing-rate summary with cohort and record counts.
+    """
     results = []
     for cohort, group in df.groupby("cohort"):
         for col in DQ_FEATURES:
@@ -176,7 +238,14 @@ def compute_missing_rates(df):
 
 
 def compute_volume_by_cohort(df):
-    """record count and default rate per monthly cohort."""
+    """Aggregate loan volume and default rate by monthly cohort.
+
+    Args:
+        df: Scored dataframe containing cohort and default information.
+
+    Returns:
+        pd.DataFrame: Monthly loan counts, default rate, and average loan amount.
+    """
     vol = df.groupby("cohort", as_index=False).agg(
         n_loans=("loan_amnt", "size"),
         default_rate=("default_flag", "mean"),
@@ -187,7 +256,14 @@ def compute_volume_by_cohort(df):
 
 
 def compute_default_rate_by_grade(df):
-    """default rate by grade overall."""
+    """Compute overall default rate by loan grade.
+
+    Args:
+        df: Scored dataframe with ``grade`` and ``default_flag`` columns.
+
+    Returns:
+        pd.DataFrame: Grade-level loan counts and default rates.
+    """
     return (
         df.groupby("grade", as_index=False)
         .agg(n_loans=("loan_amnt", "size"), default_rate=("default_flag", "mean"))
@@ -196,7 +272,14 @@ def compute_default_rate_by_grade(df):
 
 
 def compute_feature_distributions(df):
-    """save training vs monitoring distributions for drift overlay chart."""
+    """Prepare sampled feature distributions for baseline/current overlays.
+
+    Args:
+        df: Input dataframe containing drift features and year field.
+
+    Returns:
+        pd.DataFrame: Sampled long-format rows labeled as training vs monitoring.
+    """
     df_out = df[DRIFT_FEATURES + ["year"]].copy()
     df_out["period_label"] = np.where(
         df_out["year"].isin(TRAIN_YEARS),
@@ -210,6 +293,7 @@ def compute_feature_distributions(df):
 
 
 def main():
+    """Run the full preprocessing, modeling, metric, and export pipeline."""
     print("=" * 60)
     print("creditscope data pipeline")
     print("=" * 60)
