@@ -2,8 +2,9 @@
 
 > An interactive dashboard for monitoring credit scoring model performance, detecting population drift, and tracking data quality over time. Built with Python, Altair, and Dash.
 
-**[🚀 Live Dashboard](https://data551-creditscope.onrender.com)** · **[📋 Proposal](doc/proposal.md)** · **[📝 Reflections](doc/reflection-milestone2.md)**
+**🌐 Live App:** https://data551-creditscope.onrender.com/
 
+**[📋 Proposal](doc/proposal.md)** · **[📝 M2 Reflection](doc/reflection-milestone2.md)** · **[📝 M4 Reflection](doc/reflection-milestone4.md)**
 
 ---
 
@@ -11,52 +12,50 @@
 
 CreditScope is a model monitoring dashboard for credit risk managers and model validators. Using the public Lending Club loan dataset (2.26M loans, 2007–2018), it simulates a common workflow: a credit scoring model is trained on historical data and then monitored as new loan cohorts arrive.
 
-For reproducible and fast Milestone 1 EDA/prototyping, we start from a curated 2012–2018 subset (~100k loans), then use a stratified working sample (~50k loans) that preserves key segment structure (e.g., loan grade and issue period).
+We use a curated 2012–2018 subset (~100k loans) with a stratified working sample (~50k loans) that preserves key segment structure (e.g., loan grade and issue period). A logistic regression model trained on 2012–2014 data serves as the baseline, and the dashboard tracks its behavior across 2015–2018 quarterly cohorts.
 
-The dashboard is designed to answer questions such as:
+The dashboard helps answer questions like:
 
-- How does model AUC evolve over time, overall and across key borrower segments (e.g., loan grades)?
-- Which input features show the strongest population drift relative to the training baseline, and when do those shifts occur?
-- Do changes in data quality (missingness, record counts) coincide with periods of weaker model performance?
-- For higher-risk segments (e.g., grades D/E), how do feature shifts relate to changes in default rates and AUC?
-
-Instead of a static PDF-style model report, CreditScope provides an interactive view of performance, drift, and data quality—closer to what a small risk team would use in practice.
+- How does model AUC evolve over time, overall and across borrower segments?
+- Which input features show the strongest population drift relative to the training baseline?
+- Is the model's calibration degrading — is it over- or under-predicting default risk?
+- Do changes in data quality (missingness, record counts) coincide with weaker model performance?
 
 ---
 
 ## App Description
 
-The app uses a **sidebar + main-content** layout with three main tabs.
+The app uses a **sidebar + main-content** layout with three tabs.
 
 ### Left Sidebar — Controls
 
-- **Date range slider**: Select the monitoring window (monthly cohorts, 2012–2018).
-- **Segment filter dropdown**: Break down metrics by loan grade (A–G), loan purpose, or home ownership.
-- **Feature selector dropdown**: Choose the input feature to inspect in the drift view.
+- **Date range slider**: Select the monitoring window (quarterly cohorts, 2012–2018).
+- **Segment filter dropdown**: Break down metrics by loan grade (A–G).
+- **Feature selector dropdown**: Choose which input feature to inspect in the drift view.
 - **Threshold toggle** (radio buttons): Switch between standard and conservative alert thresholds for PSI and AUC.
+- **Abbreviation tooltips**: Hover over AUC, PSI, and DQ info icons for one-line explanations.
 
-### Tab 1 — Overview (Model Health)
+### Tab 1 — Model Performance
 
-- KPI cards for **current AUC**, **max PSI**, and **data quality score** (optional aggregate health flag), with traffic-light status colors.
-- **AUC time-series line chart** with configurable threshold bands.
-- **PSI heatmap** summarizing drift intensity across features and time periods.
+- **KPI cards** for Overall Health, Model AUC, Max PSI (Drift), and Data Quality, each with traffic-light color coding and a badge showing the trigger (e.g., "Warning — driven by PSI").
+- **AUC time-series line chart** with configurable warning and alert threshold lines.
+- **Collapsible Dashboard Guide** explaining what CreditScope tracks and how to interpret the charts.
 
 ### Tab 2 — Drift Analysis
 
-- **PSI bar chart** ranking monitored features by drift score for the selected period.
-- **Distribution comparison chart** (overlaid histograms/densities) comparing the training baseline vs. selected cohort for a chosen feature.
-- Linked interaction currently uses the feature selector dropdown; PSI bar click-to-link is planned for a future milestone.
+- **PSI heatmap** summarizing drift intensity across features and quarters, with a star marking the latest quarter.
+- **Calibration scatter plot** comparing predicted vs. observed default rates across baseline and monitoring periods.
+- **PSI bar chart** ranking monitored features by drift score for the latest quarter.
+- **Distribution comparison chart** — overlaid histograms showing the training baseline (filled) vs. current selection (outlined) for the selected feature.
 
 ### Tab 3 — Data Quality
 
-- **Missing-rate time series** for key features over time.
-- **Record-count bar chart** by monthly cohort to detect volume anomalies.
+- **Four individual missing-rate trend charts**, one per monitored feature (Debt-to-Income, Interest Rate, Annual Income, Loan Amount).
+- **Loan volume bar chart** by quarter, colored by observed default rate, to detect volume anomalies.
 
 ---
 
 ## App Sketch
-
-The sketch below illustrates the planned layout and interactions (wireframe; not final UI):
 
 ![CreditScope Dashboard Sketch](doc/sketch.png)
 
@@ -67,7 +66,7 @@ The sketch below illustrates the planned layout and interactions (wireframe; not
 ```bash
 # Clone the repository
 git clone https://github.com/UBCTAO/DATA551_Creditscope.git
-cd creditscope
+cd DATA551_Creditscope
 
 # Install dependencies
 pip install -r requirements.txt
@@ -76,10 +75,23 @@ pip install -r requirements.txt
 python src/app.py
 ```
 
+Then open http://127.0.0.1:8050 in your browser.
+
+---
+
 ## Data Notes
 
-- **Source dataset:** Lending Club public dataset on Kaggle (2007–2018; ~2.26M records).
-- **Project scope:** We restrict analysis to 2012–2018 to keep variable definitions consistent after platform/reporting changes.
-- **Working data size:** Curated subset (~100k) → stratified working sample (~50k) for fast EDA and visual prototyping.
-- **Why stratified sampling:** It preserves key segment distributions while reducing iteration time in Milestone 1.
-- **Interpretation note:** In Milestone 1, we focus on relative temporal/segment patterns rather than exact population-level rates.
+- **Source:** Lending Club public dataset on Kaggle (2007–2018, ~2.26M records, CC0 license).
+- **Scope:** 2012–2018 to keep variable definitions consistent after platform changes.
+- **Working sample:** Stratified ~50k loans preserving grade and time distributions.
+- **Baseline model:** Logistic regression trained on 2012–2014 data, monitored on 2015–2018 cohorts.
+
+---
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
